@@ -68,6 +68,9 @@ private:
         x = temp;
       }
       else {
+        bool it = x->color;
+        std::string ite = (it ? "RED " : "BLACK ");
+        std::cout << ite;
         return x->val;
       }
     }
@@ -98,6 +101,8 @@ private:
     if(isRed(x->right) && !isRed(x->left))      { x = rotateLeft(x); }
     if(isRed(x->left) && isRed(x->left->left))  { x = rotateRight(x); }
     if(isRed(x->left) && isRed(x->right))       { flipColors(x); }
+
+    // if(!isRed(x->left) && !isRed(x->right))       { flipColors(x); }
 
     x->size = 1 + size(x->left) + size(x->right);
     return x;
@@ -137,17 +142,16 @@ public:
       root->color = RED;
     }
 
-    root = deleteMax(root);
+    root = delete_max(root);
     if(!empty()) { root->color = BLACK; }
     assert(check());
   }
 private:
   node* delete_max(node* x) {
-    if (x->right == nullptr) { return nullptr; }
-
     if(isRed(x->left)) {
       x = rotateRight(x);
     }
+    if (x->right == nullptr) { return nullptr; }
 
     if(!isRed(x->right) && !isRed(x->right->left)) {
       x = moveRedRight(x);
@@ -175,34 +179,37 @@ private:
   node* delete_key(node* x, Key& key) {
     if (x == nullptr) { return nullptr; }
 
-    if      (less(key,    x->key)) {
-      if(!isRed(x->left) && !isRed(x->left->left)) {
+    if (less(key, x->key)) {
+      if (!isRed(x->left) && !isRed(x->left->left)) {
         x = moveRedLeft(x);
       }
-      x->left  = delete_key(x->left,  key);
+      x->left = delete_key(x->left, key);
     }
     else {
+      // if key > x->key, proc this else loop.
       if(isRed(x->left)) {
         x = rotateRight(x);
       }
-      if(!left(x->key, key) && x->right == nullptr) {
+      if(!less(key, x->key) && x->right == nullptr) {
         return nullptr;
       }
+
       if(!isRed(x->right) && !isRed(x->right->left)) {
         x = moveRedRight(x);
       }
-      if(!left(x->key, key)) {
+      if(compare(key, x->key) == 0) {
         // if (x->right == nullptr) { return x->left; }
         // if (x->left  == nullptr) { return x->right; }
         node* t = min(x->right);
         x->key = t->key;
         x->val = t->val;
-        x = min(t->right);
-        x->right = delete_min(t->right);
+        //x = min(t->right);
+        x->right = delete_min(x->right);
       }
-
       else {
+
         x->right = delete_key(x->right, key);
+
       }
     }
     x->size = size(x->left) + size(x->right) + 1;
