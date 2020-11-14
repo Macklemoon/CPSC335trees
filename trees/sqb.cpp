@@ -9,7 +9,6 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-
 #include <functional>
 #include "slist.h"
 #include "stack.h"
@@ -298,6 +297,44 @@ void test_shuffle() {
 
 #include <cstdio>
 
+template <typename Key, typename Value, typename SymbolTable>
+void test_bst(const std::string& msg, const std::string& filename, SymbolTable& st) {
+  char buf[BUFSIZ];
+
+  std::ifstream ifs(filename);
+  if (!ifs.is_open()) {
+    std::cerr << "Could not open file: '" << filename << "'\n";  exit(2);
+  }
+
+  std::cout << "\n\n===========================\n >>> " << msg << " <<< \n\n";
+  std::cout << "Building symbol table for file: '" << filename << "'. \n";
+  std::cout << "(punctuation automatically stripped)... \n";
+  int i = 0;
+  std::string s;
+  while (ifs >> s) {
+    strcpy(buf, s.c_str());
+    strconvert(buf, tolower);
+    strstrip(buf);
+    std::string key = std::string(buf);
+    if (key != "") { st.put(key, i++); }
+    st.print_inorder();
+  }
+  std::cout << "\n";
+
+  std::cout << "\nin level order (root to leaves)...\n";
+  array_queue<Key> keys = st.level_order();
+  for (std::string& key : keys) {
+    std::cout << std::setw(12) << key << "  " << std::setw(2) << st.get(key) << "\n";
+  }
+
+  std::cout << "\nin alphabetical order...\n";
+  keys = st.keys();
+  for (std::string& key : keys) {
+    std::cout << std::setw(14) << key << "  " << std::setw(2) << st.get(key) << "\n";
+  }
+}
+
+
 //------------------------------------------------------------------------------
 int main(int argc, const char * argv[]) {
 //run_node_list_stack_queue_tests<std::string>();
@@ -361,56 +398,20 @@ int main(int argc, const char * argv[]) {
 //  char buf[BUFSIZ];
 //  if (argc != 2) { std::cerr << "Usage ./sqb filename\n";  exit(1); }
 
-  bst<std::string, int>::test_bst("tinyST.txt");
+//  bst<std::string, int>::test_bst("tinyST.txt");
 //  bst<std::string, int>::test_bst("gettysburgST.txt");
 //  bst<std::string, int>::test_bst(argv[1]);
 
-  bst_red_black<std::string, std::string>::run_tests();
+  bst<std::string, int>  bst;
+  test_bst<std::string, int>("bst", "tinyST.txt", bst);
 
-  bst_red_black<std::string, std::string> ls;
-  std::string s_ = "s";
-  std::string e_ = "e";
-  std::string a_ = "a";
-  std::string r_ = "r";
-  std::string c_ = "c";
-  std::string h_ = "h";
-  std::string x_ = "x";
-  std::string m_ = "m";
-  std::string p_ = "p";
-  std::string l_ = "l";
-  std::string &s = s_;
-  std::string &e = e_;
-  std::string &a = a_;
-  std::string &r = r_;
-  std::string &c = c_;
-  std::string &h = h_;
-  std::string &x = x_;
-  std::string &m = m_;
-  std::string &p = p_;
-  std::string &l = l_;
-  ls.put(s, "0");
-  ls.put(e, "12");
-  ls.put(a, "8");
-  ls.put(r, "3");
-  ls.put(c, "4");
-  ls.put(h, "5");
-  ls.put(x, "7");
-  ls.put(m, "9");
-  ls.put(p, "10");
-  ls.put(l, "11");
-  ls.delete_min();
+  bst_red_black<std::string, int> red_black;
+  test_bst<std::string, int>("red_black_bst", "tinyST.txt", red_black);
 
-  array_queue<std::string> keys = ls.level_order();
-  std::cout << "=======================playing in true order\n";
-  for (std::string& key : keys) {
-    std::cout << std::setw(12) << key << "  " << std::setw(2) << ls.get(key) << "\n";
-  }
+//  bst<std::string, int>::test_bst("tinyST.txt");
 
-  std::cout << "=======================playing in alphapbetical order\n";
-  keys = ls.keys();
-  for (std::string& key : keys) {
-    std::cout << std::setw(14) << key << "  " << std::setw(2) << ls.get(key) << "\n";
-  }
+
+
 //  btree<std::string, std::string>::run_tests();
 
   std::cout << "\t\t...done.\n";
