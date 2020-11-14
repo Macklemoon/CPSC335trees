@@ -46,8 +46,6 @@ private:
 public:
   bst_red_black() : root(nullptr) { }
   bool empty() { return size() == 0; }
-
-public:
   size_t size()   { return size(root); }
 private:
   size_t size(node* x) { return x == nullptr ? 0 : x->size; }
@@ -57,15 +55,12 @@ public:
 private:
   Value get(node* x, Key& key) {
     if (key == Key()) { throw new std::invalid_argument("calls get() with a null key"); }
-    node* temp = x->left;
     while(x != nullptr) {
       if(less(key, x->key)) {
-        temp = x->left;
-        x = temp;
+        x = x->left;
       }
       else if(less(x->key, key)) {
-        temp = x->right;
-        x = temp;
+        x = x->right;
       }
       else {
         bool it = x->color;
@@ -81,17 +76,13 @@ private:
 public:
   void put(Key& key, Value val) {
     if (key == Key()) { std::cerr << "..... warning: calling put() with a null key" << "\n";  return; }
-//    if (val == Value()) {
-//      delete_key(key);
-//      return;
-//    }
 
     root = put(root, key, val);
     root->color = BLACK;
     assert(check());
   }
 private:
-  node* put(node* x, Key key, Value val) {
+  node* put(node* x, Key& key, Value& val) {
     if (x == nullptr) { return new node(key, val, RED, 1); }
 
     if      (less(key,    x->key)) { x->left  = put(x->left,  key, val); }
@@ -101,8 +92,6 @@ private:
     if(isRed(x->right) && !isRed(x->left))      { x = rotateLeft(x); }
     if(isRed(x->left) && isRed(x->left->left))  { x = rotateRight(x); }
     if(isRed(x->left) && isRed(x->right))       { flipColors(x); }
-
-    // if(!isRed(x->left) && !isRed(x->right))       { flipColors(x); }
 
     x->size = 1 + size(x->left) + size(x->right);
     return x;
@@ -190,7 +179,7 @@ private:
       if(isRed(x->left)) {
         x = rotateRight(x);
       }
-      if(!less(key, x->key) && x->right == nullptr) {
+      if(compare(x->key, key) == 0 && x->right == nullptr) {
         return nullptr;
       }
 
@@ -207,13 +196,12 @@ private:
         x->right = delete_min(x->right);
       }
       else {
-
         x->right = delete_key(x->right, key);
-
       }
     }
-    x->size = size(x->left) + size(x->right) + 1;
-    return x;
+    //x->size = size(x->left) + size(x->right) + 1;
+    //return x;
+    return balance(x);
   }
 
 /***************************************************************************
@@ -225,8 +213,8 @@ node* rotateRight(node* h) {
   node* x = h->left;
   h->left = x->right;
   x->right = h;
-  x->color = x->right->color;
-  x->right->color = RED;
+  x->color = h->color;
+  h->color = RED;
   x->size = h->size;
   h->size = size(h->left) + size(h->right) + 1;
 
@@ -238,8 +226,8 @@ node* rotateLeft(node* h) {
     node* x = h->right;
     h->right = x->left;
     x->left = h;
-    x->color = x->left->color;
-    x->left->color = RED;
+    x->color = h->color;
+    h->color = RED;
     x->size = h->size;
     h->size = size(h->left) + size(h->right) + 1;
 
@@ -457,17 +445,17 @@ private:
   }
 
 public:
-  void prsize_t_inorder() {
-    std::cout << "========================================================================= prsize_ting inorder...\n";
-    prsize_t_inorder(root);
-    std::cout << "========================================================================= end prsize_ting inorder...\n\n";
+  void print_inorder() {
+    std::cout << "========================================================================= printing inorder...\n";
+    print_inorder(root);
+    std::cout << "========================================================================= end printing inorder...\n\n";
   }
 private:
-  void prsize_t_inorder(node* x) {
+  void print_inorder(node* x) {
     if (x == nullptr) { return; }
-    prsize_t_inorder(x->left);
+    print_inorder(x->left);
     std::cout << *x;
-    prsize_t_inorder(x->right);
+    print_inorder(x->right);
   }
 
 private:
@@ -476,7 +464,7 @@ private:
     if (!is_bst())             { std::cerr << "Not in symmetric order\n";         return false;  }
     if (!is_size_consistent()) { std::cerr << "Subtree counts not consistent\n";  return false;  }
     if (!is_rank_consistent()) { std::cerr << "Ranks not consistent\n";           return false;  }
-    //if (!is23())               { std::cerr << "Not a 2-3 Tree\n";                return false;  }
+    if (!is23())               { std::cerr << "Not a 2-3 Tree\n";                return false;  }
     if (!is_balanced())        { std::cerr << "Not balanced\n";                return false;  }
     return true;
   }
